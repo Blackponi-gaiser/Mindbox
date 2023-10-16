@@ -19,7 +19,7 @@ spec: #Определяем настройки deployment
     spec:
       affinity: # Определяет настройки аффинити (affinity) и анти-аффинити (anti-affinity) для размещения подов на узлах Kubernetes
         podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution: # Определяет, что анти-аффинити является обязательной для учета при планировании размещения подов 
+          requiredDuringSchedulingIgnoredDuringExecution: # Определяет, что опция анти-аффинити является обязательной для учета при планировании размещения подов 
           - topologyKey: "kubernetes.io/hostname" #Ключ топологии, что означает, что поды должны размещаться на разных узлах по их именам хостов.
             labelSelector:
               matchExpressions:
@@ -51,3 +51,4 @@ spec:
     resource:
       name: cpu
       targetAverageUtilization: 80 #устанавливает порог использования CPU. Когда использование CPU превышает 80%, HPA начнет увеличивать количество реплик
+# Повторить данное условие на своей машине, чтобы протестировать работоспособность не получилось, так как не хватает мощности пк
