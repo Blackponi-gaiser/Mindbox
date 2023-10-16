@@ -1,0 +1,53 @@
+apiVersion: apps/v1 #Версия deployment
+kind: Deployment #Определяем как ресурс deployment
+metadata: #Раздел для метаданных
+  name: react-spa
+  namespace: {{NAMESPACE}}
+  labels:
+    k8s-app: react-spa
+    project: react
+spec: #Определяем настройки deployment
+  replicas: 1 #Колличество реплик
+  selector: 
+    matchLabels:
+      k8s-app: react-spa
+  template: #Шаблон создания подов
+    metadata:
+      name: react-spa
+      labels:
+        k8s-app: react-spa
+    spec:
+      affinity: # Определяет настройки аффинити (affinity) и анти-аффинити (anti-affinity) для размещения подов на узлах Kubernetes
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: # Определяет, что анти-аффинити является обязательной для учета при планировании размещения подов 
+          - topologyKey: "kubernetes.io/hostname" #Ключ топологии, что означает, что поды должны размещаться на разных узлах по их именам хостов.
+            labelSelector:
+              matchExpressions:
+              - key: k8s-app
+                operator: In
+                values:
+                - react-spa
+      containers: #Указываем образ для создания контейнеров
+      - name: react-spa
+        image: {{SPA_IMAGE}}
+        imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler #Определяем как ресурс HorizontalPodAutoscaler версии "autoscaling/v2beta2".
+metadata:
+  name: react-spa-hpa
+  namespace: {{NAMESPACE}}
+spec:
+  scaleTargetRef: #Определяем какой ресурс будем масштабировать
+    apiVersion: apps/v1
+    kind: Deployment
+    name: react-spa
+  minReplicas: 1 #мин кол реплик
+  maxReplicas: 4 #мак кол реплик
+  metrics: #Определяется метрика, на которую будет ориентироваться HPA для масштабирования
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 80 #устанавливает порог использования CPU. Когда использование CPU превышает 80%, HPA начнет увеличивать количество реплик
